@@ -7,15 +7,17 @@ import {
   TouchableOpacity,
   TextInput,
   SafeAreaView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAppState } from '@/contexts/AppStateContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { trpc } from '@/lib/trpc';
 import {
   CBSEClass,
   Subject,
   SUBJECTS_BY_CLASS,
   DifficultyLevel,
-  StudentProfile,
 } from '@/constants/cbse';
 import colors from '@/constants/colors';
 import { ChevronRight, CheckCircle2, Circle } from 'lucide-react-native';
@@ -25,7 +27,7 @@ type OnboardingStep = typeof ONBOARDING_STEPS[number];
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { updateProfile } = useAppState();
+  const { refreshProfile } = useAuth();
   
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('welcome');
   const [name, setName] = useState<string>('');
@@ -33,6 +35,22 @@ export default function OnboardingScreen() {
   const [selectedSubjects, setSelectedSubjects] = useState<Subject[]>([]);
   const [subjectRatings, setSubjectRatings] = useState<Record<Subject, DifficultyLevel>>({} as Record<Subject, DifficultyLevel>);
   const [painPoints, setPainPoints] = useState<Record<Subject, string>>({} as Record<Subject, string>);
+
+  const completeOnboardingMutation = trpc.onboarding.complete.useMutation({
+    onSuccess: () => {
+      console.log('[Onboarding] Successfully completed onboarding');
+      refreshProfile();
+      router.replace('/(student)' as any);
+    },
+    onError: (error) => {
+      console.error('[Onboarding] Error completing onboarding:', error);
+      Alert.alert(
+        'Error',
+        'Failed to complete onboarding. Please try again.',
+        [{ text: 'OK' }]
+      );
+    },
+  });
 
   const nextStep = () => {
     const currentIndex = ONBOARDING_STEPS.indexOf(currentStep);
@@ -42,24 +60,35 @@ export default function OnboardingScreen() {
   };
 
   const finishOnboarding = () => {
-    if (!selectedClass || selectedSubjects.length === 0 || !name) return;
+    if (!selectedClass || selectedSubjects.length === 0 || !name) {
+      Alert.alert('Missing Information', 'Please complete all required fields.');
+      return;
+    }
 
-    const painPointsArray: Record<Subject, string[]> = {} as Record<Subject, string[]>;
+    const painPointsArray: Record<string, string[]> = {};
     selectedSubjects.forEach((subject) => {
-      painPointsArray[subject] = painPoints[subject] ? [painPoints[subject]] : [];
+      const points: string[] = [];
+      if (painPoints[subject] && painPoints[subject].trim().length > 0) {
+        points.push(painPoints[subject]);
+      }
+      painPointsArray[subject] = points;
     });
 
-    const profile: StudentProfile = {
-      name,
-      class: selectedClass,
-      subjects: selectedSubjects,
-      subjectRatings,
-      painPoints: painPointsArray,
-      onboardingComplete: true,
-    };
+    const ratingsRecord: Record<string, DifficultyLevel> = {};
+    selectedSubjects.forEach((subject) => {
+      if (subjectRatings[subject]) {
+        ratingsRecord[subject] = subjectRatings[subject];
+      }
+    });
 
-    updateProfile(profile);
-    router.replace('/dashboard' as any);
+    console.log('[Onboarding] Submitting onboarding data');
+    completeOnboardingMutation.mutate({
+      fullName: name,
+      grade: parseInt(selectedClass),
+      subjects: selectedSubjects,
+      subjectRatings: ratingsRecord,
+      painPoints: painPointsArray,
+    });
   };
 
   const toggleSubject = (subject: Subject) => {
@@ -272,11 +301,18 @@ export default function OnboardingScreen() {
                 </View>
               ))}
               <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={nextStep}
+                style={[styles.primaryButton, completeOnboardingMutation.isPending && styles.buttonDisabled]}
+                onPress={finishOnboarding}
+                disabled={completeOnboardingMutation.isPending}
               >
-                <Text style={styles.primaryButtonText}>Continue</Text>
-                <ChevronRight color={colors.surface} size={20} />
+                {completeOnboardingMutation.isPending ? (
+                  <ActivityIndicator color={colors.surface} />
+                ) : (
+                  <>
+                    <Text style={styles.primaryButtonText}>Start Learning</Text>
+                    <ChevronRight color={colors.surface} size={20} />
+                  </>
+                )}
               </TouchableOpacity>
             </View>
           )}
@@ -300,11 +336,18 @@ export default function OnboardingScreen() {
                 </View>
               </View>
               <TouchableOpacity
-                style={styles.primaryButton}
+                style={[styles.primaryButton, completeOnboardingMutation.isPending && styles.buttonDisabled]}
                 onPress={finishOnboarding}
+                disabled={completeOnboardingMutation.isPending}
               >
-                <Text style={styles.primaryButtonText}>Start Learning</Text>
-                <ChevronRight color={colors.surface} size={20} />
+                {completeOnboardingMutation.isPending ? (
+                  <ActivityIndicator color={colors.surface} />
+                ) : (
+                  <>
+                    <Text style={styles.primaryButtonText}>Start Learning</Text>
+                    <ChevronRight color={colors.surface} size={20} />
+                  </>
+                )}
               </TouchableOpacity>
             </View>
           )}

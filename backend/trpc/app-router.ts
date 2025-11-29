@@ -6,6 +6,7 @@ import loginProcedure from "./routes/auth/login/route";
 import logoutProcedure from "./routes/auth/logout/route";
 import meProcedure from "./routes/auth/me/route";
 import linkStudentProcedure from "./routes/auth/link-student/route";
+import completeOnboardingProcedure from "./routes/onboarding/complete-onboarding/route";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -18,6 +19,9 @@ export const appRouter = createTRPCRouter({
     logout: logoutProcedure,
     me: meProcedure,
     linkStudent: linkStudentProcedure,
+  }),
+  onboarding: createTRPCRouter({
+    complete: completeOnboardingProcedure,
   }),
 });
 
