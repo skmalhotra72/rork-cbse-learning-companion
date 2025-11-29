@@ -23,6 +23,9 @@ import { createRewardProcedure } from "./routes/rewards/create-reward/route";
 import { getRewardsProcedure } from "./routes/rewards/get-rewards/route";
 import { redeemRewardProcedure } from "./routes/rewards/redeem-reward/route";
 import { updateRewardProcedure } from "./routes/rewards/update-reward/route";
+import { analyzeTextbookProcedure } from "./routes/help/analyze-textbook/route";
+import { generateTextbookQuizProcedure } from "./routes/help/generate-textbook-quiz/route";
+import { submitTextbookQuizProcedure } from "./routes/help/submit-textbook-quiz/route";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -62,6 +65,11 @@ export const appRouter = createTRPCRouter({
     get: getRewardsProcedure,
     redeem: redeemRewardProcedure,
     update: updateRewardProcedure,
+  }),
+  help: createTRPCRouter({
+    analyzeTextbook: analyzeTextbookProcedure,
+    generateQuiz: generateTextbookQuizProcedure,
+    submitQuiz: submitTextbookQuizProcedure,
   }),
 });
 

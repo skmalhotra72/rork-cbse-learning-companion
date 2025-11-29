@@ -13,6 +13,7 @@ export default {
   background: '#F9FAFB',
   surface: '#FFFFFF',
   surfaceLight: '#F3F4F6',
+  cardBg: '#FFFFFF',
   
   text: '#111827',
   textSecondary: '#6B7280',
