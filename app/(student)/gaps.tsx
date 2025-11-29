@@ -1,13 +1,15 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator, Modal } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { trpc } from '@/lib/trpc';
+import { trpc, trpcClient } from '@/lib/trpc';
 import colors from '@/constants/colors';
 import { Target, BookOpen, CheckCircle, X, Award } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function GapsScreen() {
   const router = useRouter();
+  const { showBadgeUnlocked, showLevelUp, showXPEarned } = useToast();
   const [selectedGap, setSelectedGap] = useState<any>(null);
   const [currentLesson, setCurrentLesson] = useState<any>(null);
   const [currentQuiz, setCurrentQuiz] = useState<any>(null);
@@ -51,6 +53,7 @@ export default function GapsScreen() {
       });
 
       console.log('[GapsScreen] Lesson completed, XP earned:', result.xpEarned);
+      showXPEarned(result.xpEarned, 'Lesson completed!');
       setShowLessonModal(false);
 
       const quizResult = await generateQuizMutation.mutateAsync({
@@ -83,6 +86,22 @@ export default function GapsScreen() {
 
       setQuizResult(result);
       setShowQuizModal(false);
+      
+      if (result.newBadges && result.newBadges.length > 0) {
+        result.newBadges.forEach((badge: any, index: number) => {
+          setTimeout(() => {
+            showBadgeUnlocked(badge.name, badge.icon, badge.description);
+          }, index * 2000);
+        });
+      }
+      
+      const statsQuery = await trpcClient.gamification.getStats.query();
+      const oldLevel = statsQuery.stats.level - (result.newLevel > statsQuery.stats.level ? 1 : 0);
+      if (result.newLevel > oldLevel) {
+        const delay = (result.newBadges?.length || 0) * 2000 + 1000;
+        setTimeout(() => showLevelUp(result.newLevel), delay);
+      }
+      
       setShowResultModal(true);
 
       await gapsQuery.refetch();
