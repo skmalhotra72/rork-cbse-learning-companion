@@ -23,6 +23,9 @@ import { getRewardsProcedure } from "./routes/rewards/get-rewards/route";
 import { updateRewardProcedure } from "./routes/rewards/update-reward/route";
 import { deleteRewardProcedure } from "./routes/rewards/delete-reward/route";
 import { redeemRewardProcedure } from "./routes/rewards/redeem-reward/route";
+import { analyzeTextbookProcedure } from "./routes/vision/analyze-textbook/route";
+import { generateConceptQuizProcedure } from "./routes/vision/generate-concept-quiz/route";
+import { submitConceptQuizProcedure } from "./routes/vision/submit-concept-quiz/route";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -62,6 +65,11 @@ export const appRouter = createTRPCRouter({
     update: updateRewardProcedure,
     delete: deleteRewardProcedure,
     redeem: redeemRewardProcedure,
+  }),
+  vision: createTRPCRouter({
+    analyzeTextbook: analyzeTextbookProcedure,
+    generateQuiz: generateConceptQuizProcedure,
+    submitQuiz: submitConceptQuizProcedure,
   }),
 });
 
