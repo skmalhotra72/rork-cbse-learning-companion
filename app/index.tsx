@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter, useRootNavigationState } from 'expo-router';
-import { useAppState } from '@/contexts/AppStateContext';
+import { useAuth } from '@/contexts/AuthContext';
 import colors from '@/constants/colors';
 
 export default function Index() {
   const router = useRouter();
-  const { profile, isLoading } = useAppState();
+  const { isAuthenticated, isLoading, role } = useAuth();
   const rootNavigationState = useRootNavigationState();
   const [hasNavigated, setHasNavigated] = useState(false);
 
   useEffect(() => {
     console.log('[Index] State changed:', { 
       isLoading, 
-      hasProfile: !!profile, 
-      onboardingComplete: profile?.onboardingComplete,
+      isAuthenticated,
+      role,
       navigationReady: rootNavigationState?.key,
       hasNavigated
     });
@@ -29,18 +29,21 @@ export default function Index() {
       setHasNavigated(true);
       
       setTimeout(() => {
-        if (!profile || !profile.onboardingComplete) {
-          console.log('[Index] Navigating to onboarding');
-          router.replace('/onboarding');
-        } else {
-          console.log('[Index] Navigating to dashboard');
-          router.replace('/dashboard');
+        if (!isAuthenticated) {
+          console.log('[Index] Not authenticated, navigating to login');
+          router.replace('/login');
+        } else if (role === 'student') {
+          console.log('[Index] Student authenticated, navigating to dashboard');
+          router.replace('/(student)');
+        } else if (role === 'parent') {
+          console.log('[Index] Parent authenticated, navigating to parent dashboard');
+          router.replace('/(parent)');
         }
       }, 100);
     } else {
       console.log('[Index] Still loading...');
     }
-  }, [isLoading, profile, rootNavigationState?.key, hasNavigated, router]);
+  }, [isLoading, isAuthenticated, role, rootNavigationState?.key, hasNavigated, router]);
 
   return (
     <View style={styles.container}>

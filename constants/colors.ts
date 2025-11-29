@@ -27,6 +27,7 @@ export default {
     pink: '#EC4899',
     green: '#10B981',
     orange: '#F97316',
+    red: '#EF4444',
   },
 
   gradient: {
