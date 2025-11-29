@@ -134,7 +134,7 @@ export default function StudentDashboard() {
         <TouchableOpacity 
           style={styles.actionCard} 
           activeOpacity={0.7}
-          onPress={() => router.push('/(student)/stuck' as any)}
+          onPress={() => router.push('/(student)/textbook-help' as any)}
         >
           <View style={styles.actionCardOutline}>
             <View style={styles.actionCardContent}>
