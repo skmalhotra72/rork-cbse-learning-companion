@@ -9,12 +9,19 @@ export default function Index() {
   const { profile, isLoading } = useAppState();
 
   useEffect(() => {
+    console.log('[Index] State changed:', { isLoading, hasProfile: !!profile, onboardingComplete: profile?.onboardingComplete });
+    
     if (!isLoading) {
+      console.log('[Index] Not loading, navigating...');
       if (!profile || !profile.onboardingComplete) {
+        console.log('[Index] Navigating to onboarding');
         router.replace('/onboarding');
       } else {
+        console.log('[Index] Navigating to dashboard');
         router.replace('/dashboard');
       }
+    } else {
+      console.log('[Index] Still loading...');
     }
   }, [isLoading, profile, router]);
 

@@ -38,25 +38,52 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
   const profileQuery = useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
-      const stored = await AsyncStorage.getItem(STORAGE_KEYS.PROFILE);
-      return stored ? JSON.parse(stored) : null;
+      console.log('[AppState] Loading profile from AsyncStorage...');
+      try {
+        const stored = await AsyncStorage.getItem(STORAGE_KEYS.PROFILE);
+        console.log('[AppState] Profile loaded:', stored ? 'exists' : 'null');
+        return stored ? JSON.parse(stored) : null;
+      } catch (error) {
+        console.error('[AppState] Error loading profile:', error);
+        return null;
+      }
     },
+    staleTime: 0,
+    retry: false,
   });
 
   const progressQuery = useQuery({
     queryKey: ['progress'],
     queryFn: async () => {
-      const stored = await AsyncStorage.getItem(STORAGE_KEYS.PROGRESS);
-      return stored ? JSON.parse(stored) : DEFAULT_PROGRESS;
+      console.log('[AppState] Loading progress from AsyncStorage...');
+      try {
+        const stored = await AsyncStorage.getItem(STORAGE_KEYS.PROGRESS);
+        console.log('[AppState] Progress loaded:', stored ? 'exists' : 'using default');
+        return stored ? JSON.parse(stored) : DEFAULT_PROGRESS;
+      } catch (error) {
+        console.error('[AppState] Error loading progress:', error);
+        return DEFAULT_PROGRESS;
+      }
     },
+    staleTime: 0,
+    retry: false,
   });
 
   const rewardsQuery = useQuery({
     queryKey: ['rewards'],
     queryFn: async () => {
-      const stored = await AsyncStorage.getItem(STORAGE_KEYS.REWARDS);
-      return stored ? JSON.parse(stored) : [];
+      console.log('[AppState] Loading rewards from AsyncStorage...');
+      try {
+        const stored = await AsyncStorage.getItem(STORAGE_KEYS.REWARDS);
+        console.log('[AppState] Rewards loaded:', stored ? 'exists' : 'empty array');
+        return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+        console.error('[AppState] Error loading rewards:', error);
+        return [];
+      }
     },
+    staleTime: 0,
+    retry: false,
   });
 
   useEffect(() => {
@@ -227,11 +254,21 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
     saveRewardsMutation.mutate(updated);
   };
 
+  const isLoading = profileQuery.isLoading || progressQuery.isLoading || rewardsQuery.isLoading;
+  
+  console.log('[AppState] State:', {
+    isLoading,
+    profileLoading: profileQuery.isLoading,
+    progressLoading: progressQuery.isLoading,
+    rewardsLoading: rewardsQuery.isLoading,
+    hasProfile: !!profile,
+  });
+
   return {
     profile,
     progress,
     rewards,
-    isLoading: profileQuery.isLoading || progressQuery.isLoading,
+    isLoading,
     updateProfile,
     addXP,
     updateStreak,
