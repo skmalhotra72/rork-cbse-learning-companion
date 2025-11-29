@@ -7,6 +7,7 @@ import { AppStateProvider } from "@/contexts/AppStateContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import colors from '@/constants/colors';
 import { trpc, trpcClient } from "@/lib/trpc";
+import { supabase } from "@/lib/supabase";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,6 +42,21 @@ function RootLayoutNav() {
 export default function RootLayout() {
   useEffect(() => {
     SplashScreen.hideAsync();
+    
+    const testSupabaseConnection = async () => {
+      try {
+        const { error } = await supabase.from('users').select('count').limit(1);
+        if (error) {
+          console.log('Supabase connection test:', error.message);
+        } else {
+          console.log('✅ Supabase connected successfully');
+        }
+      } catch (err) {
+        console.log('Supabase connection test failed:', err);
+      }
+    };
+    
+    testSupabaseConnection();
   }, []);
 
   return (
