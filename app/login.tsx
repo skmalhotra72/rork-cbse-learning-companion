@@ -31,9 +31,24 @@ export default function LoginScreen() {
         router.replace('/(parent)/home' as any);
       }
     },
-    onError: (error) => {
-      console.error('[Login] Error:', error);
-      setError(error.message || 'Login failed. Please try again.');
+    onError: (error: any) => {
+      console.error('[Login] Error details:', {
+        message: error?.message,
+        data: error?.data,
+        cause: error?.cause,
+      });
+      
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (error?.message?.includes('fetch')) {
+        errorMessage = 'Cannot connect to server. Please ensure the backend is running (bun dev --tunnel)';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message;
+      }
+      
+      setError(errorMessage);
     },
   });
 

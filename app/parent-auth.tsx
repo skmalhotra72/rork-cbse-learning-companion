@@ -30,25 +30,55 @@ export default function ParentAuthScreen() {
     onSuccess: (data) => {
       console.log('[Parent Login] Success:', data);
       if (data.user.role === 'parent') {
-        router.replace('/(parent)' as any);
+        router.replace('/(parent)/home' as any);
       } else {
         setError('This account is not registered as a parent');
       }
     },
-    onError: (error) => {
-      console.error('[Parent Login] Error:', error);
-      setError(error.message || 'Login failed. Please try again.');
+    onError: (error: any) => {
+      console.error('[Parent Login] Error details:', {
+        message: error?.message,
+        data: error?.data,
+        cause: error?.cause,
+      });
+      
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (error?.message?.includes('fetch')) {
+        errorMessage = 'Cannot connect to server. Please ensure the backend is running (bun dev --tunnel)';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message;
+      }
+      
+      setError(errorMessage);
     },
   });
 
   const signupMutation = trpc.auth.signupParent.useMutation({
     onSuccess: (data) => {
       console.log('[Parent Signup] Success:', data);
-      router.replace('/(parent)' as any);
+      router.replace('/(parent)/home' as any);
     },
-    onError: (error) => {
-      console.error('[Parent Signup] Error:', error);
-      setError(error.message || 'Signup failed. Please try again.');
+    onError: (error: any) => {
+      console.error('[Parent Signup] Error details:', {
+        message: error?.message,
+        data: error?.data,
+        cause: error?.cause,
+      });
+      
+      let errorMessage = 'Signup failed. Please try again.';
+      
+      if (error?.message?.includes('fetch')) {
+        errorMessage = 'Cannot connect to server. Please ensure the backend is running (bun dev --tunnel)';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message;
+      }
+      
+      setError(errorMessage);
     },
   });
 
