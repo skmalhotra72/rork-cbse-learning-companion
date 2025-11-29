@@ -40,7 +40,7 @@ export default function OnboardingScreen() {
     onSuccess: () => {
       console.log('[Onboarding] Successfully completed onboarding');
       refreshProfile();
-      router.replace('/(student)' as any);
+      router.replace('/(student)/dashboard' as any);
     },
     onError: (error) => {
       console.error('[Onboarding] Error completing onboarding:', error);

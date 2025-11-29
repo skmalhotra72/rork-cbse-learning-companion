@@ -9,7 +9,7 @@ export default function ParentLayout() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="index" />
+      <Stack.Screen name="home" />
       <Stack.Screen name="rewards" />
       <Stack.Screen name="analytics" />
     </Stack>

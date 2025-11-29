@@ -26,9 +26,9 @@ export default function LoginScreen() {
     onSuccess: (data) => {
       console.log('[Login] Success:', data);
       if (data.user.role === 'student') {
-        router.replace('/(student)' as any);
+        router.replace('/(student)/dashboard' as any);
       } else if (data.user.role === 'parent') {
-        router.replace('/(parent)' as any);
+        router.replace('/(parent)/home' as any);
       }
     },
     onError: (error) => {

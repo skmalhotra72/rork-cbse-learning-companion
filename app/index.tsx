@@ -34,10 +34,10 @@ export default function Index() {
           router.replace('/login');
         } else if (role === 'student') {
           console.log('[Index] Student authenticated, navigating to dashboard');
-          router.replace('/(student)');
+          router.replace('/(student)/dashboard');
         } else if (role === 'parent') {
           console.log('[Index] Parent authenticated, navigating to parent dashboard');
-          router.replace('/(parent)');
+          router.replace('/(parent)/home');
         }
       }, 100);
     } else {

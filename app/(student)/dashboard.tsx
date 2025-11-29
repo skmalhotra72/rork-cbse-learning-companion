@@ -27,7 +27,7 @@ export default function StudentDashboard() {
           </View>
           <TouchableOpacity
             style={styles.parentButton}
-            onPress={() => router.push('/(parent)' as any)}
+            onPress={() => router.push('/(parent)/home' as any)}
           >
             <Users color={colors.primary} size={20} />
           </TouchableOpacity>

@@ -27,7 +27,6 @@ function RootLayoutNav() {
       <Stack.Screen name="onboarding" />
       <Stack.Screen name="(student)" />
       <Stack.Screen name="(parent)" />
-      <Stack.Screen name="dashboard" />
       <Stack.Screen name="diagnose" />
       <Stack.Screen name="gaps" />
       <Stack.Screen name="stuck" />
