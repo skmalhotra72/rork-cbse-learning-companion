@@ -7,8 +7,16 @@ import { supabase } from "@/lib/supabase";
 export const trpc = createTRPCReact<AppRouter>();
 
 const getBaseUrl = () => {
-  if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
-    return process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
+  const rorkApiUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
+  
+  if (rorkApiUrl) {
+    return rorkApiUrl;
+  }
+
+  if (__DEV__) {
+    console.warn('⚠️ EXPO_PUBLIC_RORK_API_BASE_URL not set. Backend features will not work.');
+    console.warn('To fix: Restart with backend enabled using: bun dev --tunnel');
+    return 'http://localhost:3000';
   }
 
   throw new Error(
