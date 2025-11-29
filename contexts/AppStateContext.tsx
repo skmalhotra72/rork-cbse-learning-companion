@@ -275,7 +275,7 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
     saveRewardsMutation.mutate(updated);
   };
 
-  const isLoading = profileQuery.isPending || progressQuery.isPending || rewardsQuery.isPending;
+  const isLoading = profileQuery.isLoading || progressQuery.isLoading || rewardsQuery.isLoading;
   
   console.log('[AppState] State:', {
     isLoading,
@@ -283,6 +283,7 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
     progressLoading: progressQuery.isLoading,
     rewardsLoading: rewardsQuery.isLoading,
     hasProfile: !!profile,
+    profileFetchStatus: profileQuery.fetchStatus,
   });
 
   return {
