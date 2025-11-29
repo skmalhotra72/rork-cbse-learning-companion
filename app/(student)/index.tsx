@@ -1,13 +1,15 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { trpc } from '@/lib/trpc';
 import colors from '@/constants/colors';
-import { Target, BookOpen, HelpCircle, Award, Users } from 'lucide-react-native';
+import { Target, BookOpen, HelpCircle, Award, Users, TrendingUp } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function StudentDashboard() {
   const router = useRouter();
   const { profile, role } = useAuth();
+  const gapsQuery = trpc.diagnostics.getGaps.useQuery();
 
   if (!profile || role !== 'student') {
     return null;
@@ -46,12 +48,41 @@ export default function StudentDashboard() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Learning Path</Text>
-          <Text style={styles.sectionDescription}>
-            Start by identifying your knowledge gaps
-          </Text>
-        </View>
+        {gapsQuery.isLoading ? (
+          <View style={styles.loadingCard}>
+            <ActivityIndicator color={colors.primary} size="small" />
+          </View>
+        ) : gapsQuery.data && gapsQuery.data.activeGaps.length > 0 ? (
+          <View style={styles.progressCard}>
+            <View style={styles.progressHeader}>
+              <TrendingUp color={colors.primary} size={24} />
+              <Text style={styles.progressTitle}>Your Progress</Text>
+            </View>
+            <View style={styles.progressStats}>
+              <View style={styles.progressStat}>
+                <Text style={styles.progressValue}>{gapsQuery.data.activeGaps.length}</Text>
+                <Text style={styles.progressLabel}>Active Gaps</Text>
+              </View>
+              <View style={styles.progressStat}>
+                <Text style={styles.progressValue}>{gapsQuery.data.completedGaps.length}</Text>
+                <Text style={styles.progressLabel}>Completed</Text>
+              </View>
+              <View style={styles.progressStat}>
+                <Text style={styles.progressValue}>
+                  {Math.round((gapsQuery.data.completedGaps.length / (gapsQuery.data.gaps.length || 1)) * 100)}%
+                </Text>
+                <Text style={styles.progressLabel}>Progress</Text>
+              </View>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Your Learning Path</Text>
+            <Text style={styles.sectionDescription}>
+              Start by identifying your knowledge gaps
+            </Text>
+          </View>
+        )}
 
         <TouchableOpacity 
           style={styles.actionCard} 
@@ -259,5 +290,53 @@ const styles = StyleSheet.create({
   actionCardDescription: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.8)',
+  },
+  loadingCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  progressCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  progressTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: colors.text,
+  },
+  progressStats: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  progressStat: {
+    flex: 1,
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+  },
+  progressValue: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  progressLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });

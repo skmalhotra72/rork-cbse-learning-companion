@@ -7,6 +7,13 @@ import logoutProcedure from "./routes/auth/logout/route";
 import meProcedure from "./routes/auth/me/route";
 import linkStudentProcedure from "./routes/auth/link-student/route";
 import completeOnboardingProcedure from "./routes/onboarding/complete-onboarding/route";
+import { runDiagnosisProcedure } from "./routes/diagnostics/run-diagnosis/route";
+import { getGapsProcedure } from "./routes/diagnostics/get-gaps/route";
+import { getSubjectsProcedure } from "./routes/diagnostics/get-subjects/route";
+import { generateLessonProcedure } from "./routes/bridge/generate-lesson/route";
+import { completeLessonProcedure } from "./routes/bridge/complete-lesson/route";
+import { generateQuizProcedure } from "./routes/bridge/generate-quiz/route";
+import { submitQuizProcedure } from "./routes/bridge/submit-quiz/route";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -22,6 +29,17 @@ export const appRouter = createTRPCRouter({
   }),
   onboarding: createTRPCRouter({
     complete: completeOnboardingProcedure,
+  }),
+  diagnostics: createTRPCRouter({
+    runDiagnosis: runDiagnosisProcedure,
+    getGaps: getGapsProcedure,
+    getSubjects: getSubjectsProcedure,
+  }),
+  bridge: createTRPCRouter({
+    generateLesson: generateLessonProcedure,
+    completeLesson: completeLessonProcedure,
+    generateQuiz: generateQuizProcedure,
+    submitQuiz: submitQuizProcedure,
   }),
 });
 
