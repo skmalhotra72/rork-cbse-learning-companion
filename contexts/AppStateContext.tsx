@@ -272,8 +272,7 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
     saveRewardsMutation.mutate(updated);
   };
 
-  const isLoading = profileQuery.isLoading || progressQuery.isLoading || rewardsQuery.isLoading || 
-    profileQuery.fetchStatus === 'fetching' || progressQuery.fetchStatus === 'fetching' || rewardsQuery.fetchStatus === 'fetching';
+  const isLoading = profileQuery.isLoading || progressQuery.isLoading || rewardsQuery.isLoading;
   
   console.log('[AppState] State:', {
     isLoading,
