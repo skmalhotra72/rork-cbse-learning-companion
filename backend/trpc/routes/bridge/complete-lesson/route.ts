@@ -1,7 +1,6 @@
 import { studentProcedure } from "../../../create-context";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { XP_RULES, calculateLevel } from "@/constants/gamification";
 
 const inputSchema = z.object({
   gapConcept: z.string(),
@@ -27,7 +26,7 @@ export const completeLessonProcedure = studentProcedure
       });
     }
 
-    const xpEarned = XP_RULES.LESSON_COMPLETED;
+    const xpEarned = 20;
 
     const { error: sessionError } = await ctx.supabase
       .from('learning_sessions')
@@ -51,7 +50,7 @@ export const completeLessonProcedure = studentProcedure
     }
 
     const newTotalPoints = studentProfile.total_points + xpEarned;
-    const newLevel = calculateLevel(newTotalPoints);
+    const newLevel = Math.floor(newTotalPoints / 100) + 1;
 
     const { error: updateError } = await ctx.supabase
       .from('student_profiles')

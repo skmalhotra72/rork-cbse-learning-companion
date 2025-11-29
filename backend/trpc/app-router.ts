@@ -14,18 +14,6 @@ import { generateLessonProcedure } from "./routes/bridge/generate-lesson/route";
 import { completeLessonProcedure } from "./routes/bridge/complete-lesson/route";
 import { generateQuizProcedure } from "./routes/bridge/generate-quiz/route";
 import { submitQuizProcedure } from "./routes/bridge/submit-quiz/route";
-import { awardXPProcedure } from "./routes/gamification/award-xp/route";
-import { getBadgesProcedure } from "./routes/gamification/get-badges/route";
-import { updateStreakProcedure } from "./routes/gamification/update-streak/route";
-import { getStatsProcedure } from "./routes/gamification/get-stats/route";
-import { createRewardProcedure } from "./routes/rewards/create-reward/route";
-import { getRewardsProcedure } from "./routes/rewards/get-rewards/route";
-import { updateRewardProcedure } from "./routes/rewards/update-reward/route";
-import { deleteRewardProcedure } from "./routes/rewards/delete-reward/route";
-import { redeemRewardProcedure } from "./routes/rewards/redeem-reward/route";
-import { uploadTextbookProcedure } from "./routes/vision/upload-textbook/route";
-import { processTextbookProcedure } from "./routes/vision/process-textbook/route";
-import { submitVisionQuizProcedure } from "./routes/vision/submit-vision-quiz/route";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -52,24 +40,6 @@ export const appRouter = createTRPCRouter({
     completeLesson: completeLessonProcedure,
     generateQuiz: generateQuizProcedure,
     submitQuiz: submitQuizProcedure,
-  }),
-  gamification: createTRPCRouter({
-    awardXP: awardXPProcedure,
-    getBadges: getBadgesProcedure,
-    updateStreak: updateStreakProcedure,
-    getStats: getStatsProcedure,
-  }),
-  rewards: createTRPCRouter({
-    create: createRewardProcedure,
-    getAll: getRewardsProcedure,
-    update: updateRewardProcedure,
-    delete: deleteRewardProcedure,
-    redeem: redeemRewardProcedure,
-  }),
-  vision: createTRPCRouter({
-    uploadTextbook: uploadTextbookProcedure,
-    processTextbook: processTextbookProcedure,
-    submitQuiz: submitVisionQuizProcedure,
   }),
 });
 

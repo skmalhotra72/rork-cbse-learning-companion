@@ -87,12 +87,6 @@ export default function StudentLayout() {
           href: null,
         }}
       />
-      <Tabs.Screen
-        name="textbook-help"
-        options={{
-          href: null,
-        }}
-      />
     </Tabs>
   );
 }
