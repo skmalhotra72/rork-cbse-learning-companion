@@ -9,6 +9,84 @@ import {
   CHAPTER_DATA,
 } from "@/constants/cbse";
 
+export type AIPromptType = 
+  | 'DIAGNOSE_GAPS'
+  | 'EXPLAIN_CONCEPT'
+  | 'CREATE_QUIZ'
+  | 'MOTIVATIONAL_MESSAGE'
+  | 'VISION_TEXTBOOK_HELP'
+  | 'MICRO_LESSON';
+
+export interface AITextMessage {
+  type: 'text';
+  text: string;
+}
+
+export interface AIImageMessage {
+  type: 'image';
+  image: string;
+}
+
+export type AIMessageContent = string | (AITextMessage | AIImageMessage)[];
+
+export interface AIUserMessage {
+  role: 'user';
+  content: AIMessageContent;
+}
+
+export interface AIAssistantMessage {
+  role: 'assistant';
+  content: string;
+}
+
+export type AIMessage = AIUserMessage | AIAssistantMessage;
+
+export interface DiagnoseGapsInput {
+  studentClass: CBSEClass;
+  subject: Subject;
+  painPoints: string[];
+  selfRating: string;
+}
+
+export interface ExplainConceptInput {
+  subject: Subject;
+  studentClass: CBSEClass;
+  concept: string;
+  studentQuestion: string;
+}
+
+export interface CreateQuizInput {
+  subject: Subject;
+  studentClass: CBSEClass;
+  concept: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  questionCount?: number;
+}
+
+export interface MotivationalMessageInput {
+  studentName: string;
+  recentProgress: {
+    xp: number;
+    level: number;
+    streakDays: number;
+    recentAchievement?: string;
+  };
+}
+
+export interface VisionTextbookHelpInput {
+  imageBase64: string;
+  studentQuestion: string;
+  subject: Subject;
+  studentClass: CBSEClass;
+}
+
+export interface MicroLessonInput {
+  subject: Subject;
+  studentClass: CBSEClass;
+  concept: string;
+  chapter: string;
+}
+
 const ConceptGapSchema = z.object({
   subject: z.string(),
   chapter: z.string(),
@@ -35,18 +113,25 @@ const MicroLessonSchema = z.object({
   examples: z.array(z.string()),
 });
 
-export async function diagnoseGaps(
-  studentClass: CBSEClass,
-  subject: Subject,
-  painPoints: string[],
-  selfRating: string
-): Promise<ConceptGap[]> {
-  console.log(`[AI Service] Diagnosing gaps for ${subject} - Class ${studentClass}`);
-  
-  const chapters = CHAPTER_DATA[subject]?.[studentClass] || [];
-  const chapterList = chapters.map((ch) => `${ch.name} (ID: ${ch.id})`).join(', ');
+const VisionTextbookSchema = z.object({
+  explanation: z.string(),
+  relatedConcepts: z.array(z.string()),
+});
 
-  const prompt = `You are an expert CBSE educator for Class ${studentClass} ${subject}.
+const SYSTEM_PROMPTS = {
+  DIAGNOSE_GAPS: ({
+    studentClass,
+    subject,
+    selfRating,
+    painPoints,
+    chapterList,
+  }: {
+    studentClass: CBSEClass;
+    subject: Subject;
+    selfRating: string;
+    painPoints: string[];
+    chapterList: string;
+  }) => `You are an expert CBSE educator for Class ${studentClass} ${subject}.
 
 Student's self-rating: ${selfRating}
 Student's reported pain points: ${painPoints.length > 0 ? painPoints.join('; ') : 'None specified'}
@@ -61,7 +146,149 @@ For each gap:
 3. Provide a clear description of what the student is missing
 4. List 1-3 prerequisite concepts they need to review first
 
-Return 2-3 concept gaps.`;
+Return 2-3 concept gaps.`,
+
+  EXPLAIN_CONCEPT: ({
+    studentClass,
+    subject,
+    concept,
+    studentQuestion,
+  }: {
+    studentClass: CBSEClass;
+    subject: Subject;
+    concept: string;
+    studentQuestion: string;
+  }) => `You are a patient CBSE tutor for Class ${studentClass} ${subject}.
+
+A student asks about "${concept}": "${studentQuestion}"
+
+Provide a clear, step-by-step explanation that:
+1. Starts with the basics
+2. Uses simple language and relatable examples
+3. Addresses their specific question
+4. Includes 1-2 analogies to make it memorable
+5. Is encouraging and supportive
+
+Keep it concise (150-250 words).`,
+
+  CREATE_QUIZ: ({
+    studentClass,
+    subject,
+    concept,
+    difficulty,
+    questionCount,
+  }: {
+    studentClass: CBSEClass;
+    subject: Subject;
+    concept: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+    questionCount: number;
+  }) => `You are a CBSE exam question setter for Class ${studentClass} ${subject}.
+
+Create ${questionCount} multiple-choice questions to test understanding of: "${concept}".
+
+Requirements:
+- Difficulty level: ${difficulty}
+- Each question should have 4 options
+- Mark the correct answer (0-3 index)
+- Provide a clear, educational explanation for the correct answer
+- Questions should progressively test understanding
+- Use CBSE exam style and terminology
+- Avoid trick questions; focus on genuine concept understanding
+
+Return exactly ${questionCount} questions.`,
+
+  MOTIVATIONAL_MESSAGE: ({
+    studentName,
+    level,
+    xp,
+    streakDays,
+    recentAchievement,
+  }: {
+    studentName: string;
+    level: number;
+    xp: number;
+    streakDays: number;
+    recentAchievement?: string;
+  }) => `You are an encouraging learning coach for a CBSE student named ${studentName}.
+
+Recent progress:
+- Level: ${level}
+- Total XP: ${xp}
+- Learning streak: ${streakDays} days
+${recentAchievement ? `- Recent achievement: ${recentAchievement}` : ''}
+
+Generate a short (2-3 sentences), personalized, uplifting message that:
+1. Acknowledges their effort and progress
+2. Encourages them to keep going
+3. Uses teen-friendly, genuine language (not cheesy or over-the-top)
+
+Be authentic and avoid clichés.`,
+
+  VISION_TEXTBOOK_HELP: ({
+    studentClass,
+    subject,
+    studentQuestion,
+  }: {
+    studentClass: CBSEClass;
+    subject: Subject;
+    studentQuestion: string;
+  }) => `You are a helpful CBSE tutor for Class ${studentClass} ${subject}.
+
+The student is stuck on this textbook page and asks: "${studentQuestion}"
+
+Analyze the image and:
+1. Identify what concept/topic is shown
+2. Explain the concept in simple, teen-friendly language
+3. Break down any complex formulas or diagrams
+4. Suggest 2-3 related concepts they should review to understand this better
+
+Be encouraging and avoid making the student feel bad about not understanding.`,
+
+  MICRO_LESSON: ({
+    studentClass,
+    subject,
+    concept,
+    chapter,
+  }: {
+    studentClass: CBSEClass;
+    subject: Subject;
+    concept: string;
+    chapter: string;
+  }) => `You are a friendly CBSE tutor teaching Class ${studentClass} ${subject}.
+
+Create a short, engaging micro-lesson for the concept: "${concept}" from chapter "${chapter}".
+
+Guidelines:
+- Use simple, teen-friendly language (no condescending tone)
+- Start with "why this matters" to build motivation
+- Break down the concept step-by-step
+- Use 2-3 concrete examples from real life or CBSE textbook context
+- Keep it concise (200-300 words for content)
+- Be encouraging and positive
+
+Return:
+- title: A catchy title for the lesson
+- content: The main lesson explanation
+- examples: Array of 2-3 example problems or scenarios`,
+};
+
+export async function diagnoseGaps(
+  input: DiagnoseGapsInput
+): Promise<ConceptGap[]> {
+  const { studentClass, subject, painPoints, selfRating } = input;
+  console.log(`[AI Service] Diagnosing gaps for ${subject} - Class ${studentClass}`);
+  
+  const chapters = CHAPTER_DATA[subject]?.[studentClass] || [];
+  const chapterList = chapters.map((ch) => `${ch.name} (ID: ${ch.id})`).join(', ');
+
+  const prompt = SYSTEM_PROMPTS.DIAGNOSE_GAPS({
+    studentClass,
+    subject,
+    selfRating,
+    painPoints,
+    chapterList,
+  });
 
   try {
     const result = await generateObject({
@@ -90,29 +317,17 @@ Return 2-3 concept gaps.`;
 }
 
 export async function generateMicroLesson(
-  subject: Subject,
-  studentClass: CBSEClass,
-  concept: string,
-  chapter: string
+  input: MicroLessonInput
 ): Promise<MicroLesson> {
+  const { subject, studentClass, concept, chapter } = input;
   console.log(`[AI Service] Generating micro-lesson for ${concept}`);
 
-  const prompt = `You are a friendly CBSE tutor teaching Class ${studentClass} ${subject}.
-
-Create a short, engaging micro-lesson for the concept: "${concept}" from chapter "${chapter}".
-
-Guidelines:
-- Use simple, teen-friendly language (no condescending tone)
-- Start with "why this matters" to build motivation
-- Break down the concept step-by-step
-- Use 2-3 concrete examples from real life or CBSE textbook context
-- Keep it concise (200-300 words for content)
-- Be encouraging and positive
-
-Return:
-- title: A catchy title for the lesson
-- content: The main lesson explanation
-- examples: Array of 2-3 example problems or scenarios`;
+  const prompt = SYSTEM_PROMPTS.MICRO_LESSON({
+    studentClass,
+    subject,
+    concept,
+    chapter,
+  });
 
   try {
     const result = await generateObject({
@@ -137,28 +352,24 @@ Return:
 }
 
 export async function generateQuiz(
-  subject: Subject,
-  studentClass: CBSEClass,
-  concept: string,
-  difficulty: 'easy' | 'medium' | 'hard' = 'medium',
-  questionCount: number = 5
+  input: CreateQuizInput
 ): Promise<QuizQuestion[]> {
+  const { 
+    subject, 
+    studentClass, 
+    concept, 
+    difficulty = 'medium', 
+    questionCount = 5 
+  } = input;
   console.log(`[AI Service] Generating ${difficulty} quiz for ${concept}`);
 
-  const prompt = `You are a CBSE exam question setter for Class ${studentClass} ${subject}.
-
-Create ${questionCount} multiple-choice questions to test understanding of: "${concept}".
-
-Requirements:
-- Difficulty level: ${difficulty}
-- Each question should have 4 options
-- Mark the correct answer (0-3 index)
-- Provide a clear, educational explanation for the correct answer
-- Questions should progressively test understanding
-- Use CBSE exam style and terminology
-- Avoid trick questions; focus on genuine concept understanding
-
-Return exactly ${questionCount} questions.`;
+  const prompt = SYSTEM_PROMPTS.CREATE_QUIZ({
+    studentClass,
+    subject,
+    concept,
+    difficulty,
+    questionCount,
+  });
 
   try {
     const result = await generateObject({
@@ -184,24 +395,16 @@ Return exactly ${questionCount} questions.`;
 }
 
 export async function analyzeTextbookImage(
-  imageBase64: string,
-  studentQuestion: string,
-  subject: Subject,
-  studentClass: CBSEClass
+  input: VisionTextbookHelpInput
 ): Promise<{ explanation: string; relatedConcepts: string[] }> {
+  const { imageBase64, studentQuestion, subject, studentClass } = input;
   console.log(`[AI Service] Analyzing textbook image for ${subject}`);
 
-  const prompt = `You are a helpful CBSE tutor for Class ${studentClass} ${subject}.
-
-The student is stuck on this textbook page and asks: "${studentQuestion}"
-
-Analyze the image and:
-1. Identify what concept/topic is shown
-2. Explain the concept in simple, teen-friendly language
-3. Break down any complex formulas or diagrams
-4. Suggest 2-3 related concepts they should review to understand this better
-
-Be encouraging and avoid making the student feel bad about not understanding.`;
+  const prompt = SYSTEM_PROMPTS.VISION_TEXTBOOK_HELP({
+    studentClass,
+    subject,
+    studentQuestion,
+  });
 
   try {
     const result = await generateObject({
@@ -214,10 +417,7 @@ Be encouraging and avoid making the student feel bad about not understanding.`;
           ],
         },
       ],
-      schema: z.object({
-        explanation: z.string(),
-        relatedConcepts: z.array(z.string()),
-      }) as any,
+      schema: VisionTextbookSchema as any,
     });
 
     console.log(`[AI Service] Analyzed image, found ${(result as any).relatedConcepts.length} related concepts`);
@@ -230,30 +430,18 @@ Be encouraging and avoid making the student feel bad about not understanding.`;
 }
 
 export async function generateMotivationalMessage(
-  studentName: string,
-  recentProgress: {
-    xp: number;
-    level: number;
-    streakDays: number;
-    recentAchievement?: string;
-  }
+  input: MotivationalMessageInput
 ): Promise<string> {
+  const { studentName, recentProgress } = input;
   console.log(`[AI Service] Generating motivational message for ${studentName}`);
 
-  const prompt = `You are an encouraging learning coach for a CBSE student named ${studentName}.
-
-Recent progress:
-- Level: ${recentProgress.level}
-- Total XP: ${recentProgress.xp}
-- Learning streak: ${recentProgress.streakDays} days
-${recentProgress.recentAchievement ? `- Recent achievement: ${recentProgress.recentAchievement}` : ''}
-
-Generate a short (2-3 sentences), personalized, uplifting message that:
-1. Acknowledges their effort and progress
-2. Encourages them to keep going
-3. Uses teen-friendly, genuine language (not cheesy or over-the-top)
-
-Be authentic and avoid clichés.`;
+  const prompt = SYSTEM_PROMPTS.MOTIVATIONAL_MESSAGE({
+    studentName,
+    level: recentProgress.level,
+    xp: recentProgress.xp,
+    streakDays: recentProgress.streakDays,
+    recentAchievement: recentProgress.recentAchievement,
+  });
 
   try {
     const message = await generateText({ messages: [{ role: "user", content: prompt }] });
@@ -266,25 +454,17 @@ Be authentic and avoid clichés.`;
 }
 
 export async function explainConcept(
-  subject: Subject,
-  studentClass: CBSEClass,
-  concept: string,
-  studentQuestion: string
+  input: ExplainConceptInput
 ): Promise<string> {
+  const { subject, studentClass, concept, studentQuestion } = input;
   console.log(`[AI Service] Explaining concept: ${concept}`);
 
-  const prompt = `You are a patient CBSE tutor for Class ${studentClass} ${subject}.
-
-A student asks about "${concept}": "${studentQuestion}"
-
-Provide a clear, step-by-step explanation that:
-1. Starts with the basics
-2. Uses simple language and relatable examples
-3. Addresses their specific question
-4. Includes 1-2 analogies to make it memorable
-5. Is encouraging and supportive
-
-Keep it concise (150-250 words).`;
+  const prompt = SYSTEM_PROMPTS.EXPLAIN_CONCEPT({
+    studentClass,
+    subject,
+    concept,
+    studentQuestion,
+  });
 
   try {
     const explanation = await generateText({ messages: [{ role: "user", content: prompt }] });

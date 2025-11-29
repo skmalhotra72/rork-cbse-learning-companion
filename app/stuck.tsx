@@ -109,12 +109,12 @@ export default function StuckScreen() {
         });
       }
 
-      const analysis = await analyzeTextbookImage(
-        base64Image,
-        question,
-        selectedSubject,
-        profile.class
-      );
+      const analysis = await analyzeTextbookImage({
+        imageBase64: base64Image,
+        studentQuestion: question,
+        subject: selectedSubject,
+        studentClass: profile.class,
+      });
 
       setResult(analysis);
       addXP(15);

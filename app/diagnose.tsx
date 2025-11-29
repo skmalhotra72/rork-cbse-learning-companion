@@ -36,12 +36,12 @@ export default function DiagnoseScreen() {
       const painPoints = profile.painPoints[selectedSubject] || [];
       const rating = profile.subjectRatings[selectedSubject];
 
-      const gaps = await diagnoseGaps(
-        profile.class,
-        selectedSubject,
+      const gaps = await diagnoseGaps({
+        studentClass: profile.class,
+        subject: selectedSubject,
         painPoints,
-        rating
-      );
+        selfRating: rating,
+      });
 
       gaps.forEach((gap) => {
         addConceptGap(gap);

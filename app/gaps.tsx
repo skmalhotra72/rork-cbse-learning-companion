@@ -41,12 +41,12 @@ export default function GapsScreen() {
     setSelectedGapId(gapId);
 
     try {
-      const lesson = await generateMicroLesson(
-        gap.subject,
-        profile.class,
-        gap.concept,
-        gap.chapter
-      );
+      const lesson = await generateMicroLesson({
+        subject: gap.subject,
+        studentClass: profile.class,
+        concept: gap.concept,
+        chapter: gap.chapter,
+      });
 
       lesson.gapId = gapId;
       setCurrentLesson(lesson);
@@ -69,13 +69,13 @@ export default function GapsScreen() {
     setLoading(true);
 
     try {
-      const quiz = await generateQuiz(
-        gap.subject,
-        profile.class,
-        gap.concept,
-        'easy',
-        5
-      );
+      const quiz = await generateQuiz({
+        subject: gap.subject,
+        studentClass: profile.class,
+        concept: gap.concept,
+        difficulty: 'easy',
+        questionCount: 5,
+      });
 
       setCurrentQuiz(quiz);
     } catch (error) {
