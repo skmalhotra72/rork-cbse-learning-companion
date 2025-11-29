@@ -26,6 +26,11 @@ import { updateRewardProcedure } from "./routes/rewards/update-reward/route";
 import { analyzeTextbookProcedure } from "./routes/help/analyze-textbook/route";
 import { generateTextbookQuizProcedure } from "./routes/help/generate-textbook-quiz/route";
 import { submitTextbookQuizProcedure } from "./routes/help/submit-textbook-quiz/route";
+import { getAIAnalyticsProcedure } from "./routes/analytics/get-ai-analytics/route";
+import { getAILogsProcedure } from "./routes/analytics/get-ai-logs/route";
+import { getSystemHealthProcedure } from "./routes/analytics/get-system-health/route";
+import { getUserActivityProcedure } from "./routes/analytics/get-user-activity/route";
+import { getStudentStatsProcedure } from "./routes/analytics/get-student-stats/route";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -70,6 +75,13 @@ export const appRouter = createTRPCRouter({
     analyzeTextbook: analyzeTextbookProcedure,
     generateQuiz: generateTextbookQuizProcedure,
     submitQuiz: submitTextbookQuizProcedure,
+  }),
+  analytics: createTRPCRouter({
+    getAIAnalytics: getAIAnalyticsProcedure,
+    getAILogs: getAILogsProcedure,
+    getSystemHealth: getSystemHealthProcedure,
+    getUserActivity: getUserActivityProcedure,
+    getStudentStats: getStudentStatsProcedure,
   }),
 });
 

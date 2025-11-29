@@ -2,6 +2,7 @@ import { z } from "zod";
 import { protectedProcedure } from "../../../create-context";
 import { analyzeTextbookImage } from "@/services/aiService";
 import { supabase } from "@/lib/supabase";
+import { withAILogging } from "@/services/aiLogger";
 
 export const analyzeTextbookProcedure = protectedProcedure
   .input(
@@ -50,12 +51,20 @@ export const analyzeTextbookProcedure = protectedProcedure
     }
 
     try {
-      const aiResult = await analyzeTextbookImage({
-        imageBase64,
-        studentQuestion,
-        subject: subject as any,
-        studentClass: studentProfile.grade as any,
-      });
+      const aiResult = await withAILogging(
+        ctx.supabase,
+        {
+          operationType: 'VISION_TEXTBOOK_HELP',
+          userId: ctx.userId,
+          studentId: studentProfile.id,
+        },
+        () => analyzeTextbookImage({
+          imageBase64,
+          studentQuestion,
+          subject: subject as any,
+          studentClass: studentProfile.grade as any,
+        })
+      );
 
       await supabase
         .from("uploads")

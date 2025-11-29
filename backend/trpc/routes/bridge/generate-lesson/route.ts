@@ -3,6 +3,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { generateMicroLesson } from "@/services/aiService";
 import { CBSEClass, Subject } from "@/constants/cbse";
+import { withAILogging } from "@/services/aiLogger";
 
 const inputSchema = z.object({
   gapConcept: z.string(),
@@ -28,12 +29,20 @@ export const generateLessonProcedure = studentProcedure
       });
     }
 
-    const lesson = await generateMicroLesson({
-      subject: input.subject as Subject,
-      studentClass: String(studentProfile.grade) as CBSEClass,
-      concept: input.gapConcept,
-      chapter: input.chapter,
-    });
+    const lesson = await withAILogging(
+      ctx.supabase,
+      {
+        operationType: 'MICRO_LESSON',
+        userId: ctx.userId,
+        studentId: studentProfile.id,
+      },
+      () => generateMicroLesson({
+        subject: input.subject as Subject,
+        studentClass: String(studentProfile.grade) as CBSEClass,
+        concept: input.gapConcept,
+        chapter: input.chapter,
+      })
+    );
 
     console.log('[generateLesson] Lesson generated successfully');
 

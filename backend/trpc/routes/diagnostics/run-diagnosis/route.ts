@@ -3,6 +3,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { diagnoseGaps } from "@/services/aiService";
 import { CBSEClass, Subject } from "@/constants/cbse";
+import { withAILogging } from "@/services/aiLogger";
 
 const inputSchema = z.object({
   subjectId: z.string().uuid(),
@@ -41,12 +42,20 @@ export const runDiagnosisProcedure = studentProcedure
       });
     }
 
-    const aiGaps = await diagnoseGaps({
-      studentClass: String(studentProfile.grade) as CBSEClass,
-      subject: subject.name as Subject,
-      painPoints: input.painPoints,
-      selfRating: input.selfRating,
-    });
+    const aiGaps = await withAILogging(
+      ctx.supabase,
+      {
+        operationType: 'DIAGNOSE_GAPS',
+        userId: ctx.userId,
+        studentId: studentProfile.id,
+      },
+      () => diagnoseGaps({
+        studentClass: String(studentProfile.grade) as CBSEClass,
+        subject: subject.name as Subject,
+        painPoints: input.painPoints,
+        selfRating: input.selfRating,
+      })
+    );
 
     const knowledgeGaps = aiGaps.map((gap) => ({
       chapter: gap.chapter,

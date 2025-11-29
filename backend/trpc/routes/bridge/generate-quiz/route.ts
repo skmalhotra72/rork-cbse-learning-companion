@@ -3,6 +3,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { generateQuiz } from "@/services/aiService";
 import { CBSEClass, Subject } from "@/constants/cbse";
+import { withAILogging } from "@/services/aiLogger";
 
 const inputSchema = z.object({
   concept: z.string(),
@@ -29,13 +30,21 @@ export const generateQuizProcedure = studentProcedure
       });
     }
 
-    const questions = await generateQuiz({
-      subject: input.subject as Subject,
-      studentClass: String(studentProfile.grade) as CBSEClass,
-      concept: input.concept,
-      difficulty: input.difficulty || 'medium',
-      questionCount: input.questionCount || 5,
-    });
+    const questions = await withAILogging(
+      ctx.supabase,
+      {
+        operationType: 'CREATE_QUIZ',
+        userId: ctx.userId,
+        studentId: studentProfile.id,
+      },
+      () => generateQuiz({
+        subject: input.subject as Subject,
+        studentClass: String(studentProfile.grade) as CBSEClass,
+        concept: input.concept,
+        difficulty: input.difficulty || 'medium',
+        questionCount: input.questionCount || 5,
+      })
+    );
 
     console.log('[generateQuiz] Quiz generated with', questions.length, 'questions');
 
