@@ -56,7 +56,6 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    initialData: null,
   });
 
   const progressQuery = useQuery({
@@ -80,7 +79,6 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    initialData: DEFAULT_PROGRESS,
   });
 
   const rewardsQuery = useQuery({
@@ -104,26 +102,25 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    initialData: [],
   });
 
   useEffect(() => {
-    if (profileQuery.data !== undefined) {
+    if (profileQuery.data !== undefined && !profileQuery.isLoading) {
       setProfile(profileQuery.data);
     }
-  }, [profileQuery.data]);
+  }, [profileQuery.data, profileQuery.isLoading]);
 
   useEffect(() => {
-    if (progressQuery.data) {
+    if (progressQuery.data && !progressQuery.isLoading) {
       setProgress(progressQuery.data);
     }
-  }, [progressQuery.data]);
+  }, [progressQuery.data, progressQuery.isLoading]);
 
   useEffect(() => {
-    if (rewardsQuery.data) {
+    if (rewardsQuery.data && !rewardsQuery.isLoading) {
       setRewards(rewardsQuery.data);
     }
-  }, [rewardsQuery.data]);
+  }, [rewardsQuery.data, rewardsQuery.isLoading]);
 
   const saveProfileMutation = useMutation({
     mutationFn: async (newProfile: StudentProfile) => {
@@ -275,7 +272,8 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
     saveRewardsMutation.mutate(updated);
   };
 
-  const isLoading = profileQuery.isLoading || progressQuery.isLoading || rewardsQuery.isLoading;
+  const isLoading = profileQuery.isLoading || progressQuery.isLoading || rewardsQuery.isLoading || 
+    profileQuery.fetchStatus === 'fetching' || progressQuery.fetchStatus === 'fetching' || rewardsQuery.fetchStatus === 'fetching';
   
   console.log('[AppState] State:', {
     isLoading,
