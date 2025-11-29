@@ -51,10 +51,12 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
       }
     },
     staleTime: Infinity,
+    gcTime: Infinity,
     retry: false,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+    initialData: null,
   });
 
   const progressQuery = useQuery({
@@ -73,10 +75,12 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
       }
     },
     staleTime: Infinity,
+    gcTime: Infinity,
     retry: false,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+    initialData: DEFAULT_PROGRESS,
   });
 
   const rewardsQuery = useQuery({
@@ -95,10 +99,12 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
       }
     },
     staleTime: Infinity,
+    gcTime: Infinity,
     retry: false,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+    initialData: [],
   });
 
   useEffect(() => {
@@ -269,7 +275,7 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
     saveRewardsMutation.mutate(updated);
   };
 
-  const isLoading = profileQuery.isLoading || progressQuery.isLoading || rewardsQuery.isLoading;
+  const isLoading = profileQuery.isPending || progressQuery.isPending || rewardsQuery.isPending;
   
   console.log('[AppState] State:', {
     isLoading,
