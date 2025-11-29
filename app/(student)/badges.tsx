@@ -30,7 +30,7 @@ export default function BadgesScreen() {
     legendary: BADGES.filter((b) => b.rarity === 'legendary'),
   };
 
-  const rarityOrder: Array<'legendary' | 'epic' | 'rare' | 'common'> = ['legendary', 'epic', 'rare', 'common'];
+  const rarityOrder: ('legendary' | 'epic' | 'rare' | 'common')[] = ['legendary', 'epic', 'rare', 'common'];
 
   return (
     <SafeAreaView style={styles.safeArea}>
