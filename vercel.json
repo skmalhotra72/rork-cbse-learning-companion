@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/hono.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/hono.ts"
+    },
+    {
+      "src": "/",
+      "dest": "backend/hono.ts"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
