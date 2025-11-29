@@ -42,14 +42,19 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEYS.PROFILE);
         console.log('[AppState] Profile loaded:', stored ? 'exists' : 'null');
-        return stored ? JSON.parse(stored) : null;
+        const result = stored ? JSON.parse(stored) : null;
+        console.log('[AppState] Profile query completed successfully');
+        return result;
       } catch (error) {
         console.error('[AppState] Error loading profile:', error);
         return null;
       }
     },
-    staleTime: 0,
+    staleTime: Infinity,
     retry: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   const progressQuery = useQuery({
@@ -59,14 +64,19 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEYS.PROGRESS);
         console.log('[AppState] Progress loaded:', stored ? 'exists' : 'using default');
-        return stored ? JSON.parse(stored) : DEFAULT_PROGRESS;
+        const result = stored ? JSON.parse(stored) : DEFAULT_PROGRESS;
+        console.log('[AppState] Progress query completed successfully');
+        return result;
       } catch (error) {
         console.error('[AppState] Error loading progress:', error);
         return DEFAULT_PROGRESS;
       }
     },
-    staleTime: 0,
+    staleTime: Infinity,
     retry: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   const rewardsQuery = useQuery({
@@ -76,14 +86,19 @@ export const [AppStateProvider, useAppState] = createContextHook(() => {
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEYS.REWARDS);
         console.log('[AppState] Rewards loaded:', stored ? 'exists' : 'empty array');
-        return stored ? JSON.parse(stored) : [];
+        const result = stored ? JSON.parse(stored) : [];
+        console.log('[AppState] Rewards query completed successfully');
+        return result;
       } catch (error) {
         console.error('[AppState] Error loading rewards:', error);
         return [];
       }
     },
-    staleTime: 0,
+    staleTime: Infinity,
     retry: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   useEffect(() => {
