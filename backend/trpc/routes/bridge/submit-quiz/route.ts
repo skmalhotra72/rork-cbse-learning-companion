@@ -1,6 +1,7 @@
 import { studentProcedure } from "../../../create-context";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { XP_RULES, calculateLevel, BADGES, checkBadgeEarned, type StudentStats } from "@/constants/gamification";
 
 const inputSchema = z.object({
   concept: z.string(),
@@ -42,9 +43,7 @@ export const submitQuizProcedure = studentProcedure
     ).length;
     const score = Math.round((correctCount / input.questions.length) * 100);
 
-    const baseXP = 30;
-    const bonusXP = score === 100 ? 20 : score >= 80 ? 10 : 0;
-    const xpEarned = baseXP + bonusXP;
+    const xpEarned = score === 100 ? XP_RULES.QUIZ_PERFECT_SCORE : XP_RULES.QUIZ_COMPLETED;
 
     const { error: sessionError } = await ctx.supabase
       .from('learning_sessions')
@@ -71,7 +70,7 @@ export const submitQuizProcedure = studentProcedure
     }
 
     const newTotalPoints = studentProfile.total_points + xpEarned;
-    const newLevel = Math.floor(newTotalPoints / 100) + 1;
+    const newLevel = calculateLevel(newTotalPoints);
 
     const { error: updateError } = await ctx.supabase
       .from('student_profiles')
@@ -85,23 +84,68 @@ export const submitQuizProcedure = studentProcedure
       console.error('[submitQuiz] Error updating profile:', updateError);
     }
 
-    if (score === 100) {
-      const { data: existingBadge } = await ctx.supabase
-        .from('gamification')
-        .select('id')
-        .eq('student_id', studentProfile.id)
-        .eq('achievement_name', 'Quiz Master')
-        .single();
+    const { data: quizCount } = await ctx.supabase
+      .from('quiz_attempts')
+      .select('id', { count: 'exact' })
+      .eq('student_id', studentProfile.id)
+      .eq('status', 'completed');
 
-      if (!existingBadge) {
+    const { data: lessonSessions } = await ctx.supabase
+      .from('learning_sessions')
+      .select('id', { count: 'exact' })
+      .eq('student_id', studentProfile.id)
+      .eq('session_type', 'study');
+
+    const { data: gapsDiagnostics } = await ctx.supabase
+      .from('diagnostics')
+      .select('knowledge_gaps')
+      .eq('student_id', studentProfile.id)
+      .not('completed_at', 'is', null);
+
+    const completedGapsCount = (gapsDiagnostics || []).reduce((count: number, diagnostic: any) => {
+      const gaps = diagnostic.knowledge_gaps as any[];
+      return count + (gaps?.filter((g: any) => g.status === 'completed').length || 0);
+    }, 0);
+
+    const { data: perfectScores } = await ctx.supabase
+      .from('quiz_attempts')
+      .select('id', { count: 'exact' })
+      .eq('student_id', studentProfile.id)
+      .eq('status', 'completed')
+      .gte('score', 100);
+
+    const stats: StudentStats = {
+      totalXP: newTotalPoints,
+      level: newLevel,
+      currentStreak: 0,
+      quizCount: (quizCount?.length || 0) + 1,
+      lessonCount: lessonSessions?.length || 0,
+      gapCount: completedGapsCount,
+      perfectScoreCount: score === 100 ? (perfectScores?.length || 0) + 1 : (perfectScores?.length || 0),
+    };
+
+    const { data: existingBadges } = await ctx.supabase
+      .from('gamification')
+      .select('achievement_name')
+      .eq('student_id', studentProfile.id)
+      .eq('achievement_type', 'badge');
+
+    const existingBadgeNames = new Set((existingBadges || []).map((b: any) => b.achievement_name));
+    const newlyEarnedBadges = [];
+
+    for (const badge of BADGES) {
+      if (!existingBadgeNames.has(badge.name) && checkBadgeEarned(badge, stats)) {
         await ctx.supabase.from('gamification').insert({
           student_id: studentProfile.id,
           achievement_type: 'badge',
-          achievement_name: 'Quiz Master',
-          description: 'Score 100% on a quiz',
-          points_awarded: 50,
-          rarity: 'epic',
+          achievement_name: badge.name,
+          description: badge.description,
+          points_awarded: badge.xpReward,
+          rarity: badge.rarity,
+          metadata: { badge_id: badge.id, icon: badge.icon },
         });
+        newlyEarnedBadges.push(badge);
+        console.log('[submitQuiz] Badge earned:', badge.name);
       }
     }
 
@@ -115,5 +159,6 @@ export const submitQuizProcedure = studentProcedure
       newTotalPoints,
       newLevel,
       passed: score >= 60,
+      newBadges: newlyEarnedBadges,
     };
   });
