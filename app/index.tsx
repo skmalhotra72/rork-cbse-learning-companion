@@ -60,3 +60,21 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 });
+
+import { useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { View, Text } from 'react-native';
+
+export default function Home() {
+  useEffect(() => {
+    async function test() {
+      const { data, error } = await supabase.from('profiles').select('*').limit(1);
+      console.log("Supabase Test:", { data, error });
+    }
+    test();
+  }, []);
+
+  return (
+    <View><Text>Home Screen</Text></View>
+  );
+}
