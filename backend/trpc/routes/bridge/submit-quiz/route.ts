@@ -1,6 +1,7 @@
 import { studentProcedure } from "../../../create-context";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { calculateLevel, XP_RULES } from "@/constants/gamification";
 
 const inputSchema = z.object({
   concept: z.string(),
@@ -42,9 +43,8 @@ export const submitQuizProcedure = studentProcedure
     ).length;
     const score = Math.round((correctCount / input.questions.length) * 100);
 
-    const baseXP = 30;
-    const bonusXP = score === 100 ? 20 : score >= 80 ? 10 : 0;
-    const xpEarned = baseXP + bonusXP;
+    const isPerfect = score === 100;
+    const xpEarned = isPerfect ? XP_RULES.QUIZ_PERFECT_SCORE : XP_RULES.QUIZ_COMPLETION;
 
     const { error: sessionError } = await ctx.supabase
       .from('learning_sessions')
@@ -71,7 +71,7 @@ export const submitQuizProcedure = studentProcedure
     }
 
     const newTotalPoints = studentProfile.total_points + xpEarned;
-    const newLevel = Math.floor(newTotalPoints / 100) + 1;
+    const newLevel = calculateLevel(newTotalPoints);
 
     const { error: updateError } = await ctx.supabase
       .from('student_profiles')
@@ -85,25 +85,7 @@ export const submitQuizProcedure = studentProcedure
       console.error('[submitQuiz] Error updating profile:', updateError);
     }
 
-    if (score === 100) {
-      const { data: existingBadge } = await ctx.supabase
-        .from('gamification')
-        .select('id')
-        .eq('student_id', studentProfile.id)
-        .eq('achievement_name', 'Quiz Master')
-        .single();
 
-      if (!existingBadge) {
-        await ctx.supabase.from('gamification').insert({
-          student_id: studentProfile.id,
-          achievement_type: 'badge',
-          achievement_name: 'Quiz Master',
-          description: 'Score 100% on a quiz',
-          points_awarded: 50,
-          rarity: 'epic',
-        });
-      }
-    }
 
     console.log('[submitQuiz] Quiz submitted, score:', score, ', XP awarded:', xpEarned);
 
@@ -115,5 +97,7 @@ export const submitQuizProcedure = studentProcedure
       newTotalPoints,
       newLevel,
       passed: score >= 60,
+      isPerfect,
+      studentId: studentProfile.id,
     };
   });

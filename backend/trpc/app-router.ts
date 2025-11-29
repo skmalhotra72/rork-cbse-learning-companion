@@ -14,6 +14,15 @@ import { generateLessonProcedure } from "./routes/bridge/generate-lesson/route";
 import { completeLessonProcedure } from "./routes/bridge/complete-lesson/route";
 import { generateQuizProcedure } from "./routes/bridge/generate-quiz/route";
 import { submitQuizProcedure } from "./routes/bridge/submit-quiz/route";
+import { awardXpProcedure } from "./routes/gamification/award-xp/route";
+import { checkBadgesProcedure } from "./routes/gamification/check-badges/route";
+import { updateStreakProcedure } from "./routes/gamification/update-streak/route";
+import { getBadgesProcedure } from "./routes/gamification/get-badges/route";
+import { getLeaderboardProcedure } from "./routes/gamification/get-leaderboard/route";
+import { createRewardProcedure } from "./routes/rewards/create-reward/route";
+import { getRewardsProcedure } from "./routes/rewards/get-rewards/route";
+import { redeemRewardProcedure } from "./routes/rewards/redeem-reward/route";
+import { updateRewardProcedure } from "./routes/rewards/update-reward/route";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -40,6 +49,19 @@ export const appRouter = createTRPCRouter({
     completeLesson: completeLessonProcedure,
     generateQuiz: generateQuizProcedure,
     submitQuiz: submitQuizProcedure,
+  }),
+  gamification: createTRPCRouter({
+    awardXp: awardXpProcedure,
+    checkBadges: checkBadgesProcedure,
+    updateStreak: updateStreakProcedure,
+    getBadges: getBadgesProcedure,
+    getLeaderboard: getLeaderboardProcedure,
+  }),
+  rewards: createTRPCRouter({
+    create: createRewardProcedure,
+    get: getRewardsProcedure,
+    redeem: redeemRewardProcedure,
+    update: updateRewardProcedure,
   }),
 });
 

@@ -2,12 +2,14 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Act
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { trpc } from '@/lib/trpc';
+import { useAuth } from '@/contexts/AuthContext';
 import colors from '@/constants/colors';
 import { Target, BookOpen, CheckCircle, X, Award } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function GapsScreen() {
   const router = useRouter();
+  const { profile, refreshProfile } = useAuth();
   const [selectedGap, setSelectedGap] = useState<any>(null);
   const [currentLesson, setCurrentLesson] = useState<any>(null);
   const [currentQuiz, setCurrentQuiz] = useState<any>(null);
@@ -17,11 +19,15 @@ export default function GapsScreen() {
   const [showQuizModal, setShowQuizModal] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
 
+  const studentProfile = profile as any;
+
   const gapsQuery = trpc.diagnostics.getGaps.useQuery();
   const generateLessonMutation = trpc.bridge.generateLesson.useMutation();
   const completeLessonMutation = trpc.bridge.completeLesson.useMutation();
   const generateQuizMutation = trpc.bridge.generateQuiz.useMutation();
   const submitQuizMutation = trpc.bridge.submitQuiz.useMutation();
+  const checkBadgesMutation = trpc.gamification.checkBadges.useMutation();
+  const updateStreakMutation = trpc.gamification.updateStreak.useMutation();
 
   const activeGaps = gapsQuery.data?.activeGaps || [];
   const completedGaps = gapsQuery.data?.completedGaps || [];
@@ -70,7 +76,7 @@ export default function GapsScreen() {
   };
 
   const handleSubmitQuiz = async () => {
-    if (!currentQuiz || !selectedGap) return;
+    if (!currentQuiz || !selectedGap || !studentProfile) return;
 
     try {
       const result = await submitQuizMutation.mutateAsync({
@@ -85,7 +91,13 @@ export default function GapsScreen() {
       setShowQuizModal(false);
       setShowResultModal(true);
 
-      await gapsQuery.refetch();
+      await Promise.all([
+        checkBadgesMutation.mutateAsync({ studentId: studentProfile.id }),
+        updateStreakMutation.mutateAsync({ studentId: studentProfile.id }),
+        gapsQuery.refetch(),
+      ]);
+      
+      refreshProfile();
     } catch (error) {
       console.error('[GapsScreen] Error submitting quiz:', error);
     }
