@@ -55,16 +55,8 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
-  }
-}
-{
-"expo": {
-  ...
-  "experiments": {
-    "typedRoutes": true
-  },
-  "extra": {
+    },
+     "extra": {
     "EXPO_PUBLIC_SUPABASE_URL": "https://ziaqpnuvvlnemxiwjckp.supabase.co",
     "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppYXFwbnV2dmxuZW14aXdqY2twIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MTk3ODgsImV4cCI6MjA3OTk5NTc4OH0.z3qfPEu_KEWfg5kJ4JAftFERhAB3TzeuibxH8ZzP-XA"
   }
