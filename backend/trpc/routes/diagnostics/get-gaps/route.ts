@@ -1,5 +1,4 @@
 import { studentProcedure } from "../../../create-context";
-import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
 export const getGapsProcedure = studentProcedure.query(async ({ ctx }) => {

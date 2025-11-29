@@ -89,7 +89,7 @@ export const runDiagnosisProcedure = studentProcedure
       points_earned: 10,
     });
 
-    const { data: updatedProfile } = await ctx.supabase
+    await ctx.supabase
       .from('student_profiles')
       .update({
         total_points: (studentProfile as any).total_points + 10,
