@@ -31,6 +31,7 @@ import { getAILogsProcedure } from "./routes/analytics/get-ai-logs/route";
 import { getSystemHealthProcedure } from "./routes/analytics/get-system-health/route";
 import { getUserActivityProcedure } from "./routes/analytics/get-user-activity/route";
 import { getStudentStatsProcedure } from "./routes/analytics/get-student-stats/route";
+import supabaseHealthProcedure from "./routes/health/supabase/route";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -82,6 +83,9 @@ export const appRouter = createTRPCRouter({
     getSystemHealth: getSystemHealthProcedure,
     getUserActivity: getUserActivityProcedure,
     getStudentStats: getStudentStatsProcedure,
+  }),
+  health: createTRPCRouter({
+    supabase: supabaseHealthProcedure,
   }),
 });
 

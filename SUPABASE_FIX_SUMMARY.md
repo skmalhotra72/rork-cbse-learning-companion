@@ -1,58 +1,166 @@
-# 🚨 SUPABASE CONNECTION FIX - QUICK SUMMARY
+# ✅ SUPABASE CONNECTION - WHAT WAS DONE
 
-## What Was Wrong?
-1. ❌ Backend and frontend using **different Supabase projects**
-2. ❌ Database **tables missing** in Supabase
+## 🔧 Changes Made to Fix the Connection
 
-## What I Fixed for You ✅
-1. ✅ Updated `env.local` - Now both backend and frontend use the **same project**
-2. ✅ Created `FIX_SUPABASE_CONNECTION.md` - Complete step-by-step guide
-3. ✅ Created test script - `scripts/test-supabase-connection.ts`
+### 1. Added Health Check Endpoint (Backend)
 
-## What YOU Need to Do (3 Simple Steps) 🎯
+**File:** `backend/hono.ts`
+- Added `/health/supabase` REST endpoint
+- This endpoint tests the Supabase connection directly
+- Returns JSON with connection status
 
-### Step 1: Create Database Tables (5 minutes)
-1. Go to: https://supabase.com/dashboard/project/ziaqpnuvvlnemxiwjckp/sql
-2. Click **"New Query"**
-3. Copy + paste `supabase-schema-complete.sql` → Click **"Run"**
-4. Click **"New Query"** again
-5. Copy + paste `supabase-missing-tables.sql` → Click **"Run"**
-6. Click **"New Query"** one more time
-7. Copy + paste `supabase-seed-subjects.sql` → Click **"Run"**
+**File:** `backend/trpc/routes/health/supabase/route.ts` (NEW)
+- Created tRPC procedure for health checks
+- Can be accessed via: `trpc.health.supabase.useQuery()`
 
-### Step 2: Verify Tables Created
-1. Go to: https://supabase.com/dashboard/project/ziaqpnuvvlnemxiwjckp/editor
-2. You should see **20+ tables** listed (not "No tables in schema")
+**File:** `backend/trpc/app-router.ts`
+- Added `health` router with `supabase` procedure
 
-### Step 3: Restart Expo
-```bash
-npx expo start -c
-```
+### 2. Created RLS Fix Script
 
-## How to Test if It's Working ✅
+**File:** `supabase-fix-rls-healthcheck.sql` (NEW)
+- Fixes Row Level Security policies
+- Allows anonymous (anon) key to read from subjects table
+- Required for health check to work
 
-### Option 1: Visual Check
-- Look for **Supabase icon** in Rork - should be **green/active**
+### 3. Created Comprehensive Guide
 
-### Option 2: Run Test Script
-```bash
-npx ts-node scripts/test-supabase-connection.ts
-```
-
-Should show:
-```
-✅ Connection SUCCESSFUL!
-✅ Found 5 subjects in database
-✅ All tables exist! Database is ready.
-```
-
-## Need More Details?
-📖 Read: **FIX_SUPABASE_CONNECTION.md** for full instructions with screenshots
+**File:** `SUPABASE_CONNECTION_FIX_GUIDE.md` (NEW)
+- Step-by-step instructions to fix the connection
+- Troubleshooting guide
+- Verification checklist
 
 ---
 
-**Your Supabase Project**
-- URL: `https://ziaqpnuvvlnemxiwjckp.supabase.co`
-- Dashboard: https://supabase.com/dashboard/project/ziaqpnuvvlnemxiwjckp
+## 📋 WHAT YOU NEED TO DO NOW
 
-**Status**: ⚠️ Awaiting Step 1 (SQL execution)
+### Step 1: Run the SQL Script in Supabase
+1. Go to: https://supabase.com/dashboard/project/gevcprpgzxbozzqgjgmk
+2. Click on **SQL Editor** in the left sidebar
+3. Click **New query**
+4. Open the file `supabase-fix-rls-healthcheck.sql` in your project
+5. Copy all the contents
+6. Paste into Supabase SQL Editor
+7. Click **Run** or press Cmd/Ctrl + Enter
+8. Wait for "Success" message
+
+### Step 2: Restart Your Development Server
+
+**CRITICAL:** Environment variables are only loaded on server start!
+
+1. In your terminal, press `Ctrl+C` to stop the server
+2. Wait for it to fully stop
+3. Run: `bun start`
+4. Wait for the server to fully start
+
+### Step 3: Wait for Rork to Check
+
+After restarting:
+1. Wait 10-20 seconds
+2. Rork automatically checks integrations periodically
+3. The Supabase icon should turn green ✅
+
+### Step 4: Verify Manually (Optional)
+
+You can test the health endpoint directly:
+
+1. Find your backend URL in the terminal (e.g., `https://xxx.rork.workers.dev`)
+2. Open in browser: `https://your-url.rork.workers.dev/api/health/supabase`
+3. You should see:
+   \`\`\`json
+   {
+     "status": "ok",
+     "connected": true,
+     "message": "Supabase connection successful"
+   }
+   \`\`\`
+
+---
+
+## 🔍 What Was the Problem?
+
+The issue had two parts:
+
+### 1. Missing Health Check Endpoint
+- Rork needs a `/health/supabase` or `/api/health/supabase` endpoint to check integration status
+- This endpoint needs to return a specific JSON format
+- We added this endpoint to both the REST API (Hono) and tRPC
+
+### 2. Row Level Security (RLS) Blocking Queries
+- Supabase has RLS enabled on the `subjects` table
+- The original policy only allowed reading active subjects (is_active = true)
+- The policy didn't explicitly allow the `anon` role to read
+- Health check queries from the anon key were being blocked
+- The SQL script fixes this by creating a policy that allows anon to read
+
+---
+
+## ✅ Expected Behavior After Fix
+
+### In Rork Dashboard
+- Supabase icon shows as GREEN ✅
+- Connection status: "Connected"
+
+### Health Check Endpoint
+- `/api/health/supabase` returns success
+- Status code: 200
+- Response: `{"status": "ok", "connected": true, ...}`
+
+### Your App
+- Can query Supabase without auth errors
+- Authentication works properly
+- All database operations work
+
+---
+
+## 🆘 If It's Still Not Working
+
+### Common Issues:
+
+**1. Forgot to restart server**
+   - Solution: Stop server completely, then start again
+
+**2. SQL script not run**
+   - Solution: Check Supabase SQL Editor history to verify it ran
+
+**3. Wrong Supabase project**
+   - Solution: Verify URL is `https://gevcprpgzxbozzqgjgmk.supabase.co`
+
+**4. Subjects table is empty**
+   - Solution: Run `supabase-seed-subjects.sql` to add subjects data
+
+**5. Environment variables not loaded**
+   - Solution: Check `env.local` file, then restart server
+
+### How to Debug:
+
+1. Check server logs in terminal for errors
+2. Open `/api/health/supabase` in browser and read the error message
+3. Check Supabase dashboard → Logs for database errors
+4. Verify RLS policies in Supabase → Authentication → Policies
+
+### Get More Help:
+
+If you've tried everything:
+1. Share the exact error from `/api/health/supabase`
+2. Share any errors from browser console (F12)
+3. Share any errors from server logs (terminal)
+
+---
+
+## 🎯 Files Changed
+
+- ✅ `backend/hono.ts` - Added REST health check endpoint
+- ✅ `backend/trpc/routes/health/supabase/route.ts` - Created tRPC health check
+- ✅ `backend/trpc/app-router.ts` - Added health router
+- ✅ `supabase-fix-rls-healthcheck.sql` - SQL to fix RLS policies
+- ✅ `SUPABASE_CONNECTION_FIX_GUIDE.md` - Step-by-step guide
+- ✅ `SUPABASE_FIX_SUMMARY.md` - This file
+
+## 🎉 Next Steps
+
+Once the connection is working:
+1. Test authentication (login/signup)
+2. Test database queries
+3. Verify all features work properly
+4. Start building your app!

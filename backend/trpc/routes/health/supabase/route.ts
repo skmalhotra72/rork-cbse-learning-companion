@@ -1,65 +1,45 @@
-import { Hono } from "hono";
-import { trpcServer } from "@hono/trpc-server";
-import { cors } from "hono/cors";
-import { appRouter } from "./trpc/app-router";
-import { createContext } from "./trpc/create-context";
-import { errorHandler } from "./middleware/error-handler";
+import { publicProcedure } from "../../../create-context";
 import { createClient } from "@supabase/supabase-js";
 
-const app = new Hono();
-
-app.use("*", cors());
-app.use("*", errorHandler);
-
-app.use(
-  "/trpc/*",
-  trpcServer({
-    endpoint: "/api/trpc",
-    router: appRouter,
-    createContext,
-  })
-);
-
-app.get("/", (c) => {
-  return c.json({ status: "ok", message: "API is running" });
-});
-
-app.get("/health/supabase", async (c) => {
+export const supabaseHealthProcedure = publicProcedure.query(async () => {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    return c.json({
+    return {
       status: "error",
       connected: false,
       message: "Supabase credentials not configured",
-    }, 500);
+    };
   }
 
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
+
     const { error } = await supabase.from("subjects").select("id").limit(1);
 
     if (error) {
-      return c.json({
+      return {
         status: "error",
         connected: false,
         message: error.message,
-      }, 500);
+        details: "Database query failed. Check if tables exist and RLS policies allow access.",
+      };
     }
 
-    return c.json({
+    return {
       status: "ok",
       connected: true,
       message: "Supabase connection successful",
-    });
+      tablesChecked: ["subjects"],
+    };
   } catch (err) {
-    return c.json({
+    return {
       status: "error",
       connected: false,
       message: err instanceof Error ? err.message : "Unknown error",
-    }, 500);
+    };
   }
 });
 
-export default app;
+export default supabaseHealthProcedure;
