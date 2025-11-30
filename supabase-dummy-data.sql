@@ -31,13 +31,13 @@
 -- Insert into public.users table (extending Supabase auth.users)
 INSERT INTO public.users (id, email, role, created_at, last_login_at, is_active) VALUES
 -- Student 1: Rahul Sharma (Grade 10)
-('11111111-1111-1111-1111-111111111111', 'student1@test.com', 'student', NOW() - INTERVAL '30 days', NOW(), true),
+('d2ad5aae-7136-4f04-baec-574cf368f45d', 'student1@test.com', 'student', NOW() - INTERVAL '30 days', NOW(), true),
 -- Student 2: Priya Patel (Grade 12)
-('22222222-2222-2222-2222-222222222222', 'student2@test.com', 'student', NOW() - INTERVAL '45 days', NOW(), true),
+('f7892af6-0544-4f7e-914d-6a16ce1bb768', 'student2@test.com', 'student', NOW() - INTERVAL '45 days', NOW(), true),
 -- Parent 1: Mr. Sharma
-('33333333-3333-3333-3333-333333333333', 'parent1@test.com', 'parent', NOW() - INTERVAL '30 days', NOW(), true),
+('c27979b7-e7fc-4707-b894-daeefba87e60', 'parent1@test.com', 'parent', NOW() - INTERVAL '30 days', NOW(), true),
 -- Parent 2: Mrs. Patel
-('44444444-4444-4444-4444-444444444444', 'parent2@test.com', 'parent', NOW() - INTERVAL '45 days', NOW(), true)
+('0faa582f-62aa-4f3c-9526-b6fcb34b8b0d', 'parent2@test.com', 'parent', NOW() - INTERVAL '45 days', NOW(), true)
 ON CONFLICT (id) DO NOTHING;
 
 -- =====================================================
