@@ -24,7 +24,7 @@ app.get("/", (c) => {
   return c.json({ status: "ok", message: "API is running" });
 });
 
-app.get("/health/supabase", async (c) => {
+app.get("/api/health/supabase", async (c) => {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
@@ -66,7 +66,7 @@ const port = Number(process.env.PORT) || 3000;
 
 console.log(`🚀 Backend API starting on http://localhost:${port}`);
 console.log(`📡 tRPC endpoint: http://localhost:${port}/api/trpc`);
-console.log(`🏥 Health check: http://localhost:${port}/health/supabase`);
+console.log(`🏥 Health check: http://localhost:${port}/api/health/supabase`);
 
 export default {
   port,
