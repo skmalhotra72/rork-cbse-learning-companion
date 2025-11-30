@@ -62,4 +62,13 @@ app.get("/health/supabase", async (c) => {
   }
 });
 
-export default app;
+const port = Number(process.env.PORT) || 3000;
+
+console.log(`🚀 Backend API starting on http://localhost:${port}`);
+console.log(`📡 tRPC endpoint: http://localhost:${port}/api/trpc`);
+console.log(`🏥 Health check: http://localhost:${port}/health/supabase`);
+
+export default {
+  port,
+  fetch: app.fetch,
+};
