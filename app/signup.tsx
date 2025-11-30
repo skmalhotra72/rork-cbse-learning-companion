@@ -30,26 +30,9 @@ export default function SignupScreen() {
       console.log('[Signup] Success:', data);
       router.replace('/onboarding' as any);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('[Signup] Error:', error);
-      console.error('[Signup] Error details:', {
-        message: error?.message,
-        data: error?.data,
-        cause: error?.cause,
-        stack: error?.stack,
-      });
-      
-      let errorMessage = 'Signup failed. Please try again.';
-      
-      if (error?.message?.includes('fetch') || error?.message?.includes('Network')) {
-        errorMessage = 'Cannot connect to server. Please check the backend is running. See "tunnel"';
-      } else if (error?.data?.message) {
-        errorMessage = error.data.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      
-      setError(errorMessage);
+      setError(error.message || 'Signup failed. Please try again.');
     },
   });
 

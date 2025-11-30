@@ -30,59 +30,25 @@ export default function ParentAuthScreen() {
     onSuccess: (data) => {
       console.log('[Parent Login] Success:', data);
       if (data.user.role === 'parent') {
-        router.replace('/(parent)/home' as any);
+        router.replace('/(parent)' as any);
       } else {
         setError('This account is not registered as a parent');
       }
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('[Parent Login] Error:', error);
-      console.error('[Parent Login] Error details:', {
-        message: error?.message,
-        data: error?.data,
-        cause: error?.cause,
-        stack: error?.stack,
-      });
-      
-      let errorMessage = 'Login failed. Please try again.';
-      
-      if (error?.message?.includes('fetch') || error?.message?.includes('Network')) {
-        errorMessage = 'Cannot connect to server. Please check the backend is running. See "tunnel"';
-      } else if (error?.data?.message) {
-        errorMessage = error.data.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      
-      setError(errorMessage);
+      setError(error.message || 'Login failed. Please try again.');
     },
   });
 
   const signupMutation = trpc.auth.signupParent.useMutation({
     onSuccess: (data) => {
       console.log('[Parent Signup] Success:', data);
-      router.replace('/(parent)/home' as any);
+      router.replace('/(parent)' as any);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('[Parent Signup] Error:', error);
-      console.error('[Parent Signup] Error details:', {
-        message: error?.message,
-        data: error?.data,
-        cause: error?.cause,
-        stack: error?.stack,
-      });
-      
-      let errorMessage = 'Signup failed. Please try again.';
-      
-      if (error?.message?.includes('fetch') || error?.message?.includes('Network')) {
-        errorMessage = 'Cannot connect to server. Please check the backend is running. See "tunnel"';
-      } else if (error?.data?.message) {
-        errorMessage = error.data.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      
-      setError(errorMessage);
+      setError(error.message || 'Signup failed. Please try again.');
     },
   });
 

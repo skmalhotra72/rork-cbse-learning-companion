@@ -75,11 +75,12 @@ export const signupParentProcedure = publicProcedure
         session: authData.session,
         profile,
       };
-    } catch (error: any) {
-      console.error('[Auth] Failed to create profile:', error);
+    } catch {
+      console.error('[Auth] Failed to create profile, cleaning up auth user');
+      await ctx.supabase.auth.admin.deleteUser(authData.user.id);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: error?.message || 'Failed to create parent profile',
+        message: 'Failed to create parent profile',
       });
     }
   });
