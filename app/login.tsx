@@ -281,16 +281,3 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
   },
 });
-const handleLogin = async () => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  alert("Login successful!");
-};
