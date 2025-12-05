@@ -33,7 +33,13 @@ export default function LoginScreen() {
     },
     onError: (error) => {
       console.error('[Login] Error:', error);
-      setError(error.message || 'Login failed. Please try again.');
+      console.error('[Login] Error details:', {
+        message: error.message,
+        data: error.data,
+        shape: error.shape,
+      });
+      const errorMsg = error.message || 'Login failed. Please try again.';
+      setError(`${errorMsg}${error.data?.code ? ` (${error.data.code})` : ''}`);
     },
   });
 

@@ -30,6 +30,14 @@ export const trpcClient = trpc.createClient({
           authorization: session?.access_token ? `Bearer ${session.access_token}` : '',
         };
       },
+      fetch: (url, options) => {
+        console.log('[tRPC] Fetching:', url);
+        console.log('[tRPC] Options:', JSON.stringify(options?.headers || {}, null, 2));
+        return fetch(url, options).catch((error) => {
+          console.error('[tRPC] Fetch error:', error);
+          throw error;
+        });
+      },
     }),
   ],
 });
